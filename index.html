@@ -233,7 +233,7 @@
 </div>
 
 <script>
-  const LINK_API = "https://script.google.com/macros/s/AKfycbxGExyECblxAydnhTew27mLpxZDABKBsg3lJgpstQZbKhNPPriuuSdDhEU6NWy0SvQE/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
   let globalProdukTracker = [];
 
   function showToast(msg, isError = false) {
@@ -315,7 +315,6 @@
       return;
     }
 
-    // Jalankan pengecekan validasi sebelum mengirim ke API
     if(!validasiInput(wa, pin)) return;
     
     const btn = document.getElementById('btnLogin'); 
@@ -325,10 +324,15 @@
     try {
       const res = await fetch(LINK_API, { method: "POST", body: JSON.stringify({action: "login", wa: wa, pin: pin}) });
       const data = await res.json();
+      
       if(data.result === "success") {
         localStorage.setItem("role", data.role); 
         localStorage.setItem("nama", data.nama); 
         localStorage.setItem("wa", wa);
+        
+        // TAMBAHAN: Simpan Poin dari Database ke Memori Lokal
+        localStorage.setItem("poin", data.poin || 0); 
+        
         showToast("✅ Login Berhasil! Mengalihkan...");
         setTimeout(() => {
           window.location.href = data.role === "admin" ? "admin.html" : "customer.html";
