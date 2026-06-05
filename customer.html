@@ -108,7 +108,7 @@
   @keyframes popText { 0% { transform: scale(1); } 50% { transform: scale(1.4); color: #38bdf8; } 100% { transform: scale(1); } }
   .pop-anim { animation: popText 0.3s ease; }
 
-  /* --- FORM PENGIRIMAN & BOTTOM BAR --- */
+  /* --- FORM & BOTTOM BAR --- */
   .form-section { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(10px); padding: 25px 20px; border-radius: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: all 0.3s; }
   .form-section.error { border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.05); box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
   .form-section h3 { font-size: 18px; color: #38bdf8; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; font-weight: 600; }
@@ -157,12 +157,8 @@
 <body>
 
 <div class="bg-bubbles">
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
-  <div class="bubble"></div>
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+  <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
 </div>
 
 <div id="toast" class="toast">Pesan Notifikasi</div>
@@ -197,27 +193,30 @@
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMenu()"></div>
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <div>
-        <h2 style="font-size: 18px; font-weight: 700;">Hi, <span id="namaUser"></span>!</h2>
-        <p style="font-size: 12px; color: #93c5fd; font-weight: 400;">Customer Member</p>
-    </div>
-    <button onclick="toggleMenu()" style="background:transparent; border:none; color:white; font-size:22px; cursor: pointer; transition: 0.2s;">✕</button>
+  <div>
+      <h2 style="font-size: 18px; font-weight: 700;">Hi, <span id="namaUser"></span>!</h2>
+      <p style="font-size: 12px; color: #93c5fd; font-weight: 400;">Customer Member</p>
+      <div style="margin-top: 5px; background: linear-gradient(135deg, #f59e0b, #d97706); padding: 4px 10px; border-radius: 8px; display: inline-block; font-size: 11px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+         🌟 Poin: <span id="txtPoinUser">0</span> (Rp <span id="txtNilaiPoin">0</span>)
+      </div>
   </div>
-  <div class="sidebar-menu">
-    <a href="#" onclick="switchPage('home', this)" class="active">🏠 Order Pesanan</a>
-    <a href="#" onclick="switchPage('history', this)">📜 History Pesanan</a>
-    <a href="https://wa.me/6283143152613?text=Hallo%20admin" target="_blank">💬 Hubungi Admin</a>
-    <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); text-align:center; margin-top:20px;">🚪 Logout</a>
-  </div>
+  <button onclick="toggleMenu()" style="background:transparent; border:none; color:white; font-size:22px; cursor: pointer; transition: 0.2s;">✕</button>
+</div>
+<div class="sidebar-menu">
+  <a href="#" onclick="switchPage('home', this)" class="active">🏠 Order Pesanan</a>
+  <a href="#" onclick="switchPage('history', this)">📜 History Pesanan</a>
+  <a href="#" onclick="switchPage('profile', this)">⚙️ Pengaturan Akun</a>
+  <a href="https://wa.me/6283143152613?text=Hallo%20admin" target="_blank">💬 Hubungi Admin</a>
+  <a href="#" onclick="logout()" style="background: rgba(239, 68, 68, 0.1); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3); text-align:center; margin-top:20px;">🚪 Logout</a>
+</div>
 </div>
 
 <div class="header">
-  <div><h1 style="font-size:22px; font-weight:800; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(255,255,255,0.2);">DIGIPRINT</h1></div>
+  <div><h1 style="font-size:22px; font-weight:800; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(255,255,255,0.2);">DIGIPRINT Sbpc.</h1></div>
   <button class="menu-btn" onclick="toggleMenu()">☰</button>
 </div>
 
 <div id="page-home" class="section-content active">
-  
   <div class="toolbar-katalog">
     <div class="category-pills" id="pillContainer"></div>
     <button onclick="toggleLayout()" class="btn-layout" title="Ubah Tampilan"><span id="layoutIcon">⊞</span></button>
@@ -274,6 +273,11 @@
 
   <div class="form-section" id="metodePembayaranSection">
     <h3>Metode Pembayaran</h3>
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: rgba(14, 165, 233, 0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(56,189,248,0.3);">
+        <input type="checkbox" id="cbPakaiPoin" style="width: 18px; height: 18px; cursor: pointer;" onchange="hitungSemua()">
+        <label for="cbPakaiPoin" style="font-size: 13px; color: #bae6fd; cursor: pointer; font-weight: 600;">Gunakan semua Poin (<span id="txtDiskonPoin">Rp 0</span>)</label>
+    </div>
+
     <div class="radio-group">
       <label class="radio-label"><input type="radio" name="payment_method" value="QRIS" onchange="hapusError('metodePembayaranSection')"> <span>Bayar via <b>QRIS</b> (Semua Bank/E-Wallet)</span></label>
       <label class="radio-label"><input type="radio" name="payment_method" value="Transfer" onchange="hapusError('metodePembayaranSection')"> <span>Transfer Bank Manual</span></label>
@@ -286,6 +290,27 @@
   <div class="form-section" style="margin-top: 10px;">
       <h2 style="color: #38bdf8; font-size: 20px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">📜 History Pesanan Saya</h2>
       <div id="history-container"><i style="color:#94a3b8;">Melacak Database...</i></div>
+  </div>
+</div>
+
+<div id="page-profile" class="section-content">
+  <div class="form-section" style="margin-top: 10px;">
+      <h2 style="color: #38bdf8; font-size: 20px; font-weight: 700; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">⚙️ Pengaturan Akun</h2>
+      
+      <div class="input-box">
+        <label>Nama Lengkap Baru</label>
+        <input type="text" id="editNama" placeholder="Masukkan nama baru Anda">
+      </div>
+      <div class="input-box">
+        <label>PIN Lama (Wajib)</label>
+        <input type="password" id="editPinLama" placeholder="Masukkan PIN lama untuk keamanan">
+      </div>
+      <div class="input-box" style="margin-bottom: 25px;">
+        <label>PIN Baru</label>
+        <input type="password" id="editPinBaru" placeholder="Masukkan 6 Digit PIN baru">
+      </div>
+      
+      <button class="order-btn" id="btnSimpanProfil" onclick="simpanProfil()">💾 Simpan Perubahan</button>
   </div>
 </div>
 
@@ -328,22 +353,40 @@
 
 <div class="bottom-bar" id="bottomBar">
   <div class="total-row"><span>Subtotal:</span> <span id="txtSubtotal">Rp 0</span></div>
-  <div class="total-row"><span>Ongkos Kirim:</span> <span id="txtOngkir">Rp 0</span></div>
+  <div class="total-row"><span>Biaya Layanan:</span> <span id="txtBiayaLayanan">Rp 0</span></div>
+  
+  <div class="total-row" id="rowDiskonPoin" style="display:none; color: #10b981;"><span>Diskon Poin:</span> <span id="txtPotonganPoin">- Rp 0</span></div>
+  
   <div class="total-row grand"><span>Total Bayar:</span> <span id="txtGrandTotal">Rp 0</span></div>
   <button class="order-btn" onclick="validasiDanBukaPopUp()">🛒 Pesan Sekarang</button>
 </div>
 
 <script>
-  const LINK_API = "https://script.google.com/macros/s/AKfycbxGExyECblxAydnhTew27mLpxZDABKBsg3lJgpstQZbKhNPPriuuSdDhEU6NWy0SvQE/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
   const IMGBB_API_KEY = "bfd65eb9e20be1268509210b2f8fb9a1";
   
   if(!localStorage.getItem("wa")) { window.location.href = "index.html"; }
-  document.getElementById('namaUser').innerText = localStorage.getItem("nama");
-  document.getElementById('nomorPenerima').value = localStorage.getItem("wa");
 
   let globalProduk = [];
-  let gSubtotal = 0; let gOngkir = 0;
+  let gSubtotal = 0; 
+  let gBiayaLayanan = 0; 
   let currentLayout = localStorage.getItem("layoutMode") || "list";
+  let totalPoinUser = 0;
+
+  // --- FUNGSI INISIALISASI DATA USER ---
+  function initUserData() {
+      document.getElementById('namaUser').innerText = localStorage.getItem("nama");
+      document.getElementById('editNama').value = localStorage.getItem("nama");
+      document.getElementById('nomorPenerima').value = localStorage.getItem("wa");
+      updatePoinUI(localStorage.getItem("poin") || 0);
+  }
+
+  function updatePoinUI(poinStr) {
+      totalPoinUser = parseInt(poinStr) || 0;
+      document.getElementById('txtPoinUser').innerText = totalPoinUser;
+      document.getElementById('txtNilaiPoin').innerText = (totalPoinUser * 1000).toLocaleString('id-ID');
+      document.getElementById('txtDiskonPoin').innerText = "Rp " + (totalPoinUser * 1000).toLocaleString('id-ID');
+  }
 
   function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
@@ -381,7 +424,6 @@
   function scrollToCat(id, el) {
     document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
     el.classList.add('active');
-    
     if(id === 'all') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
@@ -458,9 +500,32 @@
     muatKeranjangLokal(); 
   }
 
+  // TAMBAHAN: Fungsi Auto-Sync Profil dan Poin
+  async function sinkronProfilPoin() {
+    const waUser = localStorage.getItem("wa");
+    if(!waUser) return;
+    
+    try {
+      const res = await fetchAPI({ action: "get_profile", wa: waUser });
+      if(res.result === "success") {
+        localStorage.setItem("nama", res.nama);
+        localStorage.setItem("poin", res.poin);
+        document.getElementById('namaUser').innerText = res.nama;
+        document.getElementById('editNama').value = res.nama;
+        updatePoinUI(res.poin);
+        hitungSemua(); 
+      }
+    } catch(e) {
+      console.log("Gagal auto-sync poin.");
+    }
+  }
+
   async function loadKatalogCustomer() {
+    initUserData();
     updateLayoutIcon();
     renderSkeleton(); 
+    
+    sinkronProfilPoin(); // Panggil sinkronisasi background
     
     try {
       const data = await fetchAPI({action: "get_produk"});
@@ -545,19 +610,29 @@
     gSubtotal = 0;
     globalProduk.forEach(p => { let qty = parseInt(document.getElementById('cus_'+p.id).innerText); gSubtotal += qty * parseInt(p.harga); });
     
-    let namaProv = getSelectText('provinsi').toUpperCase();
-    gOngkir = 0;
-    if(gSubtotal > 0) {
-      if(namaProv.includes("JAWA TIMUR")) gOngkir = gSubtotal >= 100000 ? 0 : 10000;
-      else if(namaProv.includes("JAWA TENGAH")) gOngkir = 10000;
-      else if(namaProv.includes("JAWA BARAT")) gOngkir = 15000;
-      else if(namaProv !== "") gOngkir = 59000;
+    let namaProv = getSelectText('provinsi');
+    gBiayaLayanan = 0;
+    if(gSubtotal > 0 && namaProv !== "") {
+      gBiayaLayanan = 2000;
     }
     
+    let pakaiPoin = document.getElementById('cbPakaiPoin').checked;
+    let diskonPoin = 0;
+    if (pakaiPoin && totalPoinUser > 0) {
+        diskonPoin = totalPoinUser * 1000;
+        if(diskonPoin > (gSubtotal + gBiayaLayanan)) diskonPoin = (gSubtotal + gBiayaLayanan); 
+        
+        document.getElementById('rowDiskonPoin').style.display = "flex";
+        document.getElementById('txtPotonganPoin').innerText = "- Rp " + diskonPoin.toLocaleString('id-ID');
+    } else {
+        document.getElementById('rowDiskonPoin').style.display = "none";
+    }
+    
+    let grandTotal = (gSubtotal + gBiayaLayanan) - diskonPoin;
+    
     document.getElementById('txtSubtotal').innerText = "Rp " + gSubtotal.toLocaleString('id-ID');
-    document.getElementById('txtOngkir').innerText = "Rp " + gOngkir.toLocaleString('id-ID');
-    document.getElementById('txtOngkir').style.color = (gOngkir === 0 && namaProv.includes("JAWA TIMUR") && gSubtotal > 0) ? '#10b981' : '#cbd5e1';
-    document.getElementById('txtGrandTotal').innerText = "Rp " + (gSubtotal + gOngkir).toLocaleString('id-ID');
+    document.getElementById('txtBiayaLayanan').innerText = "Rp " + gBiayaLayanan.toLocaleString('id-ID');
+    document.getElementById('txtGrandTotal').innerText = "Rp " + grandTotal.toLocaleString('id-ID');
   }
 
   function showElementError(idBox) {
@@ -599,7 +674,14 @@
     const metodeDipilih = document.querySelector('input[name="payment_method"]:checked');
     if (!metodeDipilih) return showElementError('metodePembayaranSection');
 
-    document.getElementById('modalTotal').innerText = "Rp " + (gSubtotal + gOngkir).toLocaleString('id-ID');
+    let diskonPoin = 0;
+    if (document.getElementById('cbPakaiPoin').checked && totalPoinUser > 0) {
+      diskonPoin = totalPoinUser * 1000;
+      if(diskonPoin > (gSubtotal + gBiayaLayanan)) diskonPoin = (gSubtotal + gBiayaLayanan);
+    }
+
+    document.getElementById('modalTotal').innerText = "Rp " + ((gSubtotal + gBiayaLayanan) - diskonPoin).toLocaleString('id-ID');
+
     if (metodeDipilih.value === "QRIS") {
       document.getElementById('areaQris').style.display = 'block'; document.getElementById('areaTransfer').style.display = 'none';
       document.getElementById('modalInstruction').innerText = "Silakan scan kode QRIS di bawah ini dengan aplikasi M-Banking atau E-Wallet Anda:";
@@ -631,11 +713,29 @@
       const pos = document.getElementById('kodePos').value; const detail = document.getElementById('alamatLengkap').value;
       const alamatFull = `${detail}, Ds/Kel. ${desa}, Kec. ${kec}, ${kab}, Prov. ${prov} - ${pos}`;
 
+      let diskonPoin = 0; let poinDipakai = 0;
+      if (document.getElementById('cbPakaiPoin').checked && totalPoinUser > 0) {
+         diskonPoin = totalPoinUser * 1000;
+         if(diskonPoin > (gSubtotal + gBiayaLayanan)) diskonPoin = (gSubtotal + gBiayaLayanan);
+         poinDipakai = diskonPoin / 1000;
+      }
+
+      let tagihanAkhir = (gSubtotal + gBiayaLayanan) - diskonPoin;
+
       const payload = {
-        action: "order", meja: localStorage.getItem("nama"), nama_penerima: document.getElementById('namaPenerima').value, 
-        hp_penerima: document.getElementById('nomorPenerima').value, alamat_lengkap: alamatFull, pesanan: pesananArr.join(" | "), 
-        rincian_ongkir: gOngkir, total: (gSubtotal + gOngkir), metode_pembayaran: document.querySelector('input[name="payment_method"]:checked').value, 
-        link_bukti: imgData.data.url, status: "Menunggu"
+        action: "order", 
+        wa_pembeli: localStorage.getItem("wa"),
+        meja: localStorage.getItem("nama"), 
+        nama_penerima: document.getElementById('namaPenerima').value, 
+        hp_penerima: document.getElementById('nomorPenerima').value, 
+        alamat_lengkap: alamatFull, 
+        pesanan: pesananArr.join(" | "), 
+        rincian_ongkir: gBiayaLayanan, 
+        total: tagihanAkhir, 
+        poin_digunakan: poinDipakai,
+        metode_pembayaran: document.querySelector('input[name="payment_method"]:checked').value, 
+        link_bukti: imgData.data.url, 
+        status: "Menunggu"
       };
 
       btn.innerText = "⏳ Menyimpan ke Database...";
@@ -643,7 +743,7 @@
       if(data.result === "success") {
         localStorage.removeItem("digiprint_cart"); 
         
-        let waText = `Halo Admin DIGIPRINT,\n\nSaya sudah order pesanan baru via Web Customer.\nTotal Tagihan: *Rp ${(gSubtotal + gOngkir).toLocaleString('id-ID')}*\nBukti pembayaran sudah saya lampirkan di website.\n\nMohon segera diproses ya!`;
+        let waText = `Halo Admin DIGIPRINT,\n\nSaya sudah order pesanan baru via Web Customer.\nTotal Tagihan: *Rp ${tagihanAkhir.toLocaleString('id-ID')}*\nBukti pembayaran sudah saya lampirkan di website.\n\nMohon segera diproses ya!`;
         window.open("https://wa.me/6283143152613?text=" + encodeURIComponent(waText), "_blank");
         
         document.getElementById('paymentModal').style.display = 'none';
@@ -703,9 +803,12 @@
               } else if (itemStr !== "") { strukItemsHTML += `<div style="margin-bottom: 3px;">${itemStr}</div>`; }
           });
           
-          let selisihOngkir = parseInt(trx.total_bayar) - subKeseluruhan;
-          if (selisihOngkir > 0 && subKeseluruhan > 0) {
-              strukItemsHTML += `<div style="margin-bottom: 5px;"><div style="line-height: 1.2;">Ongkos Kirim / Lainnya</div><div style="display: flex; justify-content: space-between; font-size: 11px;"><div></div><div>${selisihOngkir.toLocaleString('id-ID')}</div></div></div>`;
+          let selisihBiayaLain = parseInt(trx.total_bayar) - subKeseluruhan;
+          if (selisihBiayaLain > 0 && subKeseluruhan > 0) {
+              strukItemsHTML += `<div style="margin-bottom: 5px;"><div style="line-height: 1.2;">Biaya Layanan / Lainnya</div><div style="display: flex; justify-content: space-between; font-size: 11px;"><div></div><div>${selisihBiayaLain.toLocaleString('id-ID')}</div></div></div>`;
+          } else if (selisihBiayaLain < 0 && subKeseluruhan > 0) {
+              // Jika ditotal ternyata mines, berarti potong diskon poin
+              strukItemsHTML += `<div style="margin-bottom: 5px; color:#10b981;"><div style="line-height: 1.2;">Diskon Poin</div><div style="display: flex; justify-content: space-between; font-size: 11px;"><div></div><div>${selisihBiayaLain.toLocaleString('id-ID')}</div></div></div>`;
           }
 
           window.dataStrukAktifMap[trx.id_trx] = {
@@ -756,9 +859,51 @@
     });
   }
 
+  async function simpanProfil() {
+    const namaBaru = document.getElementById('editNama').value;
+    const pinLama = document.getElementById('editPinLama').value;
+    const pinBaru = document.getElementById('editPinBaru').value;
+    const waUser = localStorage.getItem("wa");
+
+    if(!namaBaru || !pinLama || !pinBaru) {
+      showToast("⚠️ Semua kolom wajib diisi!", true); return;
+    }
+    if(pinBaru.length !== 6) {
+      showToast("⚠️ PIN Baru wajib 6 digit angka!", true); return;
+    }
+
+    const btn = document.getElementById('btnSimpanProfil');
+    btn.innerText = "⏳ Menyimpan..."; btn.disabled = true;
+
+    try {
+      const res = await fetchAPI({
+        action: "edit_profile",
+        wa: waUser,
+        nama_baru: namaBaru,
+        pin_lama: pinLama,
+        pin_baru: pinBaru
+      });
+
+      if(res.result === "success") {
+        localStorage.setItem("nama", namaBaru); 
+        document.getElementById('namaUser').innerText = namaBaru;
+        showToast("✅ Profil berhasil diperbarui!");
+        document.getElementById('editPinLama').value = "";
+        document.getElementById('editPinBaru').value = "";
+      } else {
+        showToast("❌ Gagal: " + res.message, true); 
+      }
+    } catch(e) {
+      showToast("❌ Koneksi terputus.", true);
+    }
+    
+    btn.innerText = "💾 Simpan Perubahan"; btn.disabled = false;
+  }
+
   window.onload = loadKatalogCustomer;
+  
 </script>
-</body>
+
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -772,4 +917,5 @@
     });
   }
 </script>
+</body>
 </html>
