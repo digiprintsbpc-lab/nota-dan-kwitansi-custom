@@ -304,10 +304,12 @@
   </div>
 </div>
 <div class="modal" id="modalMarketplace">
+  <!-- Diperlebar menjadi 750px dan diberi max-height agar tidak tembus layar -->
   <div class="modal-box" style="width: 750px; max-height: 90vh; overflow-y: auto;">
     <h3 style="margin-bottom: 20px; color:#38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Order Pesanan</h3>
     <input type="hidden" id="mpRow">
     
+    <!-- BARIS 1: Grid 3 Kolom sejajar -->
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;">
       <div>
         <label style="font-size:12px; color:#cbd5e1;">Nomor Pesanan / Resi</label>
@@ -326,6 +328,7 @@
       </div>
     </div>
 
+    <!-- BARIS 2: Detail Pesanan & Keranjang -->
     <div style="border-top: 1px dashed rgba(255,255,255,0.2); padding-top: 15px;">
       <h3 style="color:#38bdf8; margin-bottom:10px; font-size:14px;">Detail Pesanan</h3>
       
@@ -343,15 +346,18 @@
         </div>
       </div>
       
+      <!-- Area Keranjang (Ditambahkan max-height & overflow-y agar bisa di-scroll jika produknya banyak) -->
       <div id="mpKeranjangList" style="background:rgba(15, 23, 42, 0.6); padding:15px; border-radius:8px; margin-top:15px; margin-bottom:15px; min-height:100px; max-height: 180px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05);">
         <i style="color:#64748b; font-size:12px; display:block; text-align:center; margin-top:20px;">Keranjang masih kosong</i>
       </div>
       
+      <!-- Total Keseluruhan -->
       <div style="display:flex; justify-content:space-between; font-size:18px; color:#10b981; background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; margin-bottom:20px;">
         <b>TOTAL:</b> <b id="mpGrandTotal">Rp 0</b>
       </div>
     </div>
     
+    <!-- Tombol Aksi -->
     <div style="display:flex; gap:15px; margin-top: 10px;">
       <button class="btn btn-red" style="flex:1; padding: 14px;" onclick="document.getElementById('modalMarketplace').style.display='none'">Batal</button>
       <button class="btn btn-blue" id="btnSimpanMarketplace" style="flex:1; padding: 14px;" onclick="simpanMarketplace()">Simpan Data</button>
@@ -361,58 +367,15 @@
 
 <script>
   // PASTIKAN LINK INI SELALU UPDATE JIKA DEPLOY BARU
-  const LINK_API = "https://script.google.com/macros/s/AKfycbyu4LFSIZcNKXNjXFuLqHwmovFEh_lFtzY_U-5Rp73P1H1cbhmuWarIKgv0p3zNtgCg/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
 
   if(localStorage.getItem("role") !== "admin") { alert("Akses Ditolak!"); window.location.href = "index.html"; }
 
   let globalProduk = [];
   let keranjangAdmin = [];
   // ==================== LOGIKA MARKETPLACE BARU DENGAN KERANJANG ==================== //
-  let keranjangMarketplace = [];
+let keranjangMarketplace = [];
 
-  let salesChartInstance = null; 
-  let globalLaporan = [];       // Menyimpan semua data asli dari G-Sheets
-  let filteredLaporan = [];     // Menyimpan data setelah difilter pencarian
-  let currentPageLaporan = 1;   // Halaman aktif saat ini
-  const rowsPerPageLaporan = 15; // Jumlah baris per halaman (bisa kamu ubah sesuka hati)
-
-  async function fetchAPI(payload) {
-    const res = await fetch(LINK_API, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
-    });
-    return await res.json();
-  }
-
-function switchPage(pageId, element) {
-  document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
-  document.getElementById('page-' + pageId).classList.add('active');
-  document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
-  element.classList.add('active');
-  
-  if(pageId === 'dashboard') loadDashboard();
-  
-  // PERBAIKAN: Tambahkan 'marketplace' ke dalam kondisi ini agar data produk ikut dimuat
-  if(pageId === 'produk' || pageId === 'transaksi' || pageId === 'marketplace') {
-      loadProduk(); 
-  }
-  
-  if(pageId === 'marketplace') loadMarketplace();
-  
-  if(pageId === 'laporan') {
-    let date = new Date();
-    let tglAkhir = formatDateStr(date);
-    let tglMulai = formatDateStr(new Date(date.getFullYear(), date.getMonth(), 1));
-    
-    document.getElementById('lapAkhir').value = tglAkhir;
-    document.getElementById('lapMulai').value = tglMulai;
-    
-    loadLaporan();
-  }
-}
-
-// ==================== LOGIKA MARKETPLACE ==================== //
 function bukaModalMarketplace() {
   document.getElementById('mpNoPesanan').value = ""; 
   document.getElementById('mpWa').value = ""; 
@@ -495,7 +458,7 @@ async function simpanMarketplace() {
     no_pesanan: noPesanan, 
     no_wa: wa, 
     via_marketplace: via, 
-    status: "pesanan selesai", 
+    status: "pesanan selesai", // Memakai status baru huruf kecil seperti yang diminta
     rincian_pesanan: pesananArr.join(" | "), 
     total_harga: totalMarketplace 
   };
@@ -503,7 +466,59 @@ async function simpanMarketplace() {
   await fetchAPI(payload);
   document.getElementById('modalMarketplace').style.display = 'none'; 
   document.getElementById('btnSimpanMarketplace').innerText = "Simpan Data";
-  loadMarketplace(); loadDashboard();
+  loadMarketplace(); loadDashboard(); // Otomatis refresh data
+}
+
+// ... Sisanya tetap menggunakan fungsi loadMarketplace(), updateViaMarketplace(), dan hapusMarketplace() yang lama ...
+  let salesChartInstance = null; 
+  let globalLaporan = [];       // Menyimpan semua data asli dari G-Sheets
+  let filteredLaporan = [];     // Menyimpan data setelah difilter pencarian
+  let currentPageLaporan = 1;   // Halaman aktif saat ini
+  const rowsPerPageLaporan = 15; // Jumlah baris per halaman (bisa kamu ubah sesuka hati)
+
+  async function fetchAPI(payload) {
+    const res = await fetch(LINK_API, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  }
+
+  // UPDATE FUNGSI INI DI SCRIPT KAMU:
+function switchPage(pageId, element) {
+  document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('.sidebar-menu a').forEach(el => el.classList.remove('active'));
+  element.classList.add('active');
+  
+  if(pageId === 'dashboard') loadDashboard();
+  
+  // PERBAIKAN: Tambahkan 'marketplace' ke dalam kondisi ini agar data produk ikut dimuat
+  if(pageId === 'produk' || pageId === 'transaksi' || pageId === 'marketplace') {
+      loadProduk(); 
+  }
+  
+  if(pageId === 'marketplace') loadMarketplace();
+  
+  if(pageId === 'laporan') {
+    let date = new Date();
+    let tglAkhir = formatDateStr(date);
+    let tglMulai = formatDateStr(new Date(date.getFullYear(), date.getMonth(), 1));
+    
+    document.getElementById('lapAkhir').value = tglAkhir;
+    document.getElementById('lapMulai').value = tglMulai;
+    
+    loadLaporan();
+  }
+}
+// ==================== LOGIKA MARKETPLACE ==================== //
+
+function bukaModalMarketplace() {
+  document.getElementById('mpNoPesanan').value = ""; 
+  document.getElementById('mpWa').value = ""; 
+  document.getElementById('mpVia').value = "Shopee";
+  document.getElementById('modalMarketplace').style.display = 'flex';
 }
 
 async function loadMarketplace() {
@@ -511,6 +526,8 @@ async function loadMarketplace() {
   tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat Database...</td></tr>';
   
   try {
+    // Meminta data dari Google Sheet. 
+    // Pastikan di Google Apps Script-mu ada penanganan untuk action "get_marketplace"
     const data = await fetchAPI({action: "get_marketplace"});
     if(data.result === "success") {
       tbody.innerHTML = "";
@@ -535,6 +552,30 @@ async function loadMarketplace() {
   } catch(e) { 
     tbody.innerHTML = '<tr><td colspan="4" style="color:#ef4444; text-align:center;">Gagal memuat data.</td></tr>'; 
   }
+}
+
+async function simpanMarketplace() {
+  const noPesanan = document.getElementById('mpNoPesanan').value;
+  const wa = document.getElementById('mpWa').value;
+  const via = document.getElementById('mpVia').value;
+  
+  if(!noPesanan || !wa) return alert("Harap isi Nomor Pesanan dan WA!");
+
+  document.getElementById('btnSimpanMarketplace').innerText = "⏳ Menyimpan...";
+  
+  // Sesuai permintaan: No -> Nomor Pesanan, Akun Pemesan -> Via, Status -> Selesai
+  const payload = { 
+    action: "add_marketplace", 
+    no_pesanan: noPesanan, 
+    no_wa: wa, 
+    via_marketplace: via, 
+    status: "Pesanan Selesai" 
+  };
+  
+  await fetchAPI(payload);
+  document.getElementById('modalMarketplace').style.display = 'none'; 
+  document.getElementById('btnSimpanMarketplace').innerText = "Simpan Data";
+  loadMarketplace(); loadDashboard();
 }
 
 async function updateViaMarketplace(row) {
@@ -760,7 +801,7 @@ function cariTabelMarketplace() {
             <td><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-family:monospace;">${p.id}</span></td>
             <td style="font-weight:500;">${p.nama}</td>
             <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 10px; border-radius:20px; font-size:11px;">${p.kategori}</span></td>
-            <td>Rp ${parseInt(p.harga.toString().replace(/[,.]/g, '')).toLocaleString('id-ID')}</td>
+            <td>Rp ${parseInt(p.harga).toLocaleString('id-ID')}</td>
             <td><span ${warn}>${p.stok}</span></td>
             <td style="text-align:center;">
                 <button class="btn btn-green" style="padding: 6px 12px; font-size:11px;" onclick="editProduk(${p.row}, '${p.id}', '${p.nama}', '${p.kategori}', '${p.desc}', ${p.harga}, ${p.stok})">✏️ Edit</button> 
@@ -898,14 +939,14 @@ function cariTabelMarketplace() {
     if(!start || !end) return alert("Pilih tanggal!");
     
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 30px;">⏳ Memuat Data dari Database...</td></tr>';
-    document.getElementById('pagination-laporan').innerHTML = ''; 
+    document.getElementById('pagination-laporan').innerHTML = ''; // Kosongkan paginasi saat loading
     
     try {
       const data = await fetchAPI({action: "get_laporan", start: start, end: end});
       if(data.result === "success") {
-        globalLaporan = data.data.reverse(); 
-        filteredLaporan = [...globalLaporan]; 
-        currentPageLaporan = 1; 
+        globalLaporan = data.data.reverse(); // Simpan dan balik urutan (terbaru di atas)
+        filteredLaporan = [...globalLaporan]; // Salin untuk kebutuhan fitur pencarian
+        currentPageLaporan = 1; // Reset ke halaman 1 setiap kali filter tanggal
         renderTabelLaporan();
       }
     } catch(e) { 
@@ -924,17 +965,20 @@ function cariTabelMarketplace() {
       return;
     }
 
+    // 1. Hitung total omset dari SEMUA data (bukan hanya halaman ini)
     let totOmset = 0;
     filteredLaporan.forEach(l => {
        let isSelesai = (l.status || "").toLowerCase().includes("selesai");
        if (isSelesai) totOmset += (parseInt(l.total) || 0);
     });
 
+    // 2. Logika Paginasi (Pemotongan Array)
     const totalPages = Math.ceil(filteredLaporan.length / rowsPerPageLaporan);
     const startIndex = (currentPageLaporan - 1) * rowsPerPageLaporan;
     const endIndex = startIndex + rowsPerPageLaporan;
-    const currentData = filteredLaporan.slice(startIndex, endIndex); 
+    const currentData = filteredLaporan.slice(startIndex, endIndex); // Ambil 15 data saja
 
+    // 3. Render Baris ke HTML
     currentData.forEach(l => {
       let tglStr = new Date(l.tgl).toLocaleString('id-ID'); 
       let hrga = parseInt(l.total) || 0; 
@@ -950,14 +994,9 @@ function cariTabelMarketplace() {
         </select>
       `;
 
-      let isWaSent = (l.pesanwa === "Terkirim");
-      let btnWaClass = isWaSent ? "" : "btn-green"; 
-      let btnWaStyle = isWaSent ? "background: linear-gradient(135deg, #475569, #334155); color: #cbd5e1; padding: 6px 12px; width: 100%; font-size:11px;" : "padding: 6px 12px; width: 100%; font-size:11px;";
-      let btnWaText = isWaSent ? "✅ WA Terkirim" : "💬 Kirim WA";
-
       let aksiBtns = `
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button id="btn-wa-${l.id_trx}" class="btn ${btnWaClass}" style="${btnWaStyle}" onclick="kirimWA('${l.hp}', '${l.id_trx}', ${hrga}, ${l.row})">${btnWaText}</button>
+          <button class="btn btn-green" style="padding: 6px 12px; width: 100%; font-size:11px;" onclick="kirimWA('${l.hp}', '${l.id_trx}', ${hrga}, ${l.row})">💬 Kirim WA</button>
           <button class="btn btn-blue" style="padding: 6px 12px; width: 100%; font-size:11px;" onclick="cetakPesanan('${l.id_trx}')">🖨️ Cetak Resi</button>
         </div>
       `;
@@ -972,64 +1011,23 @@ function cariTabelMarketplace() {
       </tr>`;
     });
 
+    // 4. Tambahkan Baris Total Omset di Paling Bawah Tabel
     tbody.innerHTML += `<tr style="background: rgba(16, 185, 129, 0.1);"><td colspan="3" style="text-align:right; font-weight:bold; color:#f8fafc; font-size:15px;">TOTAL OMSET (PESANAN SELESAI):</td><td colspan="3" style="font-weight:bold; color:#10b981; font-size:18px;">Rp ${totOmset.toLocaleString('id-ID')}</td></tr>`;
 
+    // 5. Render Tombol Paginasi
     renderPaginationControls(totalPages);
-  }
-
-  // --- UBAH JADI ASYNC AGAR BISA MEMANGGIL API ---
-  async function kirimWA(hp, idTrx, total, row) {
-    let currentStatus = document.getElementById(`status_${row}`).value;
-    let noHp = hp.toString().replace(/\D/g, ''); 
-    if(noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
-    
-    let textWa = `*NOTIFIKASI PESANAN*
-------------------------------------------
-*Digiprint Sbpc.*
-Jl. Arah Kebonklopo RT23 RW 06 Desa
-Jatiguwi, Sumberpucung
-083143152613
-------------------------------------------
-Halo kak, menginfokan untuk pesanan *${idTrx}* dengan total *Rp ${total.toLocaleString('id-ID')}*.
-Saat ini status pesanan kakak: *${currentStatus}*.
-
-Klik link berikut untuk informasi update pesanan yaa... Terimakasih!
-https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
-
-    let btnWa = document.getElementById(`btn-wa-${idTrx}`);
-    let prevText = btnWa ? btnWa.innerHTML : "";
-
-    if(btnWa && !btnWa.innerHTML.includes("Terkirim")) {
-        btnWa.innerHTML = '⏳ Loading...'; 
-        
-        try {
-          const res = await fetchAPI({action: "update_wa_status", row: row});
-          
-          if(res.result === "success") {
-            btnWa.classList.remove('btn-green');
-            btnWa.style.background = 'linear-gradient(135deg, #475569, #334155)';
-            btnWa.style.color = '#cbd5e1';
-            btnWa.innerHTML = '✅ WA Terkirim';
-            
-            window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(textWa)}`, '_blank');
-          } else {
-             alert("Gagal update status WA ke Database.");
-             btnWa.innerHTML = prevText;
-          }
-        } catch(e) {
-          alert("Koneksi Error: Gagal update status WA ke Database.");
-          btnWa.innerHTML = prevText;
-        }
-    } else {
-        window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(textWa)}`, '_blank');
-    }
   }
 
   function renderPaginationControls(totalPages) {
     const container = document.getElementById('pagination-laporan');
     
+    // Tombol Sebelumnya
     let btnPrev = `<button class="btn" style="background: rgba(255,255,255,0.1); color: ${currentPageLaporan > 1 ? 'white' : '#64748b'}; pointer-events: ${currentPageLaporan > 1 ? 'auto' : 'none'}; padding: 8px 15px;" onclick="changePageLaporan(-1)">⬅️ Sebelumnya</button>`;
+    
+    // Info Halaman
     let info = `<span style="font-size: 13px; color: #cbd5e1;">Halaman <b style="color: #38bdf8; font-size: 15px;">${currentPageLaporan}</b> dari <b>${totalPages}</b> <span style="color:#64748b; margin-left:10px;">(Total: ${filteredLaporan.length} pesanan)</span></span>`;
+    
+    // Tombol Selanjutnya
     let btnNext = `<button class="btn" style="background: rgba(255,255,255,0.1); color: ${currentPageLaporan < totalPages ? 'white' : '#64748b'}; pointer-events: ${currentPageLaporan < totalPages ? 'auto' : 'none'}; padding: 8px 15px;" onclick="changePageLaporan(1)">Selanjutnya ➡️</button>`;
     
     container.innerHTML = `${btnPrev} ${info} ${btnNext}`;
@@ -1057,6 +1055,27 @@ https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
     } catch (e) { alert("Koneksi gagal saat mengubah status."); }
     dropdown.disabled = false;
     dropdown.style.opacity = "1";
+  }
+
+  function kirimWA(hp, idTrx, total, row) {
+    let currentStatus = document.getElementById(`status_${row}`).value;
+    let noHp = hp.toString().replace(/\D/g, ''); 
+    if(noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
+    
+    let textWa = `*NOTIFIKASI PESANAN*
+------------------------------------------
+*Digiprint Sbpc.*
+Jl. Arah Kebonklopo RT23 RW 06 Desa
+Jatiguwi, Sumberpucung
+083143152613
+------------------------------------------
+Halo kak, menginfokan untuk pesanan *${idTrx}* dengan total *Rp ${total.toLocaleString('id-ID')}*.
+Saat ini status pesanan kakak: *${currentStatus}*.
+
+Klik link berikut untuk informasi update pesanan yaa... Terimakasih!
+https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
+    
+    window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(textWa)}`, '_blank');
   }
 
   async function cetakPesanan(idTrx) {
@@ -1141,8 +1160,8 @@ https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
 
   window.onload = function() {
     loadDashboard();
-    loadProduk(); 
-  };
+    loadProduk(); // Menarik database produk di background saat pertama kali web dibuka
+};
 </script>
 <script>
   if ('serviceWorker' in navigator) {
