@@ -362,7 +362,7 @@
 </div>
 
 <script>
-  const LINK_API = "https://script.google.com/macros/s/AKfycbyu4LFSIZcNKXNjXFuLqHwmovFEh_lFtzY_U-5Rp73P1H1cbhmuWarIKgv0p3zNtgCg/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
   const IMGBB_API_KEY = "bfd65eb9e20be1268509210b2f8fb9a1";
   
   if(!localStorage.getItem("wa")) { window.location.href = "index.html"; }
@@ -469,7 +469,7 @@
               <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
             </div>
             <h3>${p.nama}</h3>
-            <div class="price">Rp ${parseInt(p.harga.toString().replace(/[,.]/g, '')).toLocaleString('id-ID')}</div>
+            <div class="price">Rp ${parseInt(p.harga).toLocaleString('id-ID')}</div>
             <div class="qty-box" style="margin-top:auto; background:rgba(15,23,42,0.6); padding:6px; border-radius:12px; width:100%; justify-content:space-between; border: 1px solid rgba(255,255,255,0.05);">
               <button class="qty-btn" style="background:rgba(255,255,255,0.1); color:white; width:32px; height:32px; font-size:16px; box-shadow:none;" onclick="minQty('cus_${p.id}')">-</button>
               <div class="qty" id="cus_${p.id}">0</div>
@@ -484,7 +484,7 @@
           <div class="${cardClass}" id="card_${p.id}">
             <div class="menu-info">${badgeHtml}<h3>${p.nama}</h3>
               <div class="menu-desc">${p.desc}</div>
-              <div style="color:#38bdf8; font-weight:600; font-size:14px;">Rp ${parseInt(p.harga.toString().replace(/[,.]/g, '')).toLocaleString('id-ID')}</div>
+              <div style="color:#38bdf8; font-weight:600; font-size:14px;">Rp ${parseInt(p.harga).toLocaleString('id-ID')}</div>
             </div>
             <div class="qty-box" style="background:rgba(15,23,42,0.6); padding:6px; border-radius:12px; border: 1px solid rgba(255,255,255,0.05);">
                 <button class="qty-btn" style="background:rgba(255,255,255,0.1); color:white; box-shadow:none;" onclick="minQty('cus_${p.id}')">-</button>
@@ -608,13 +608,7 @@
 
   function hitungSemua() {
     gSubtotal = 0;
-    globalProduk.forEach(p => { 
-        let qty = parseInt(document.getElementById('cus_'+p.id).innerText); 
-        // Bagian parseInt(p.harga) diubah untuk membersihkan koma/titik
-        gSubtotal += qty * parseInt(p.harga.toString().replace(/[,.]/g, '')); 
-    });
-    
-    // ... sisa kode di bawahnya tetap sama ...
+    globalProduk.forEach(p => { let qty = parseInt(document.getElementById('cus_'+p.id).innerText); gSubtotal += qty * parseInt(p.harga); });
     
     let namaProv = getSelectText('provinsi');
     gBiayaLayanan = 0;
