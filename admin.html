@@ -760,7 +760,7 @@ function cariTabelMarketplace() {
             <td><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-family:monospace;">${p.id}</span></td>
             <td style="font-weight:500;">${p.nama}</td>
             <td><span style="background:rgba(56,189,248,0.1); color:#38bdf8; padding:4px 10px; border-radius:20px; font-size:11px;">${p.kategori}</span></td>
-            <td>Rp ${parseInt(p.harga).toLocaleString('id-ID')}</td>
+            <td>Rp ${parseInt(p.harga.toString().replace(/[,.]/g, '')).toLocaleString('id-ID')}</td>
             <td><span ${warn}>${p.stok}</span></td>
             <td style="text-align:center;">
                 <button class="btn btn-green" style="padding: 6px 12px; font-size:11px;" onclick="editProduk(${p.row}, '${p.id}', '${p.nama}', '${p.kategori}', '${p.desc}', ${p.harga}, ${p.stok})">✏️ Edit</button> 
