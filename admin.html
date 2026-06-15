@@ -317,7 +317,7 @@
       </div>
       <div>
         <label style="font-size:12px; color:#cbd5e1;">No WhatsApp</label>
-        <input type="number" id="mpWa" class="input-form" placeholder="Contoh: 08123456789" style="margin-bottom: 0;">
+        <input type="text" id="mpWa" class="input-form" placeholder="Contoh: 08123456789" style="margin-bottom: 0;">
       </div>
       <div>
         <label style="font-size:12px; color:#cbd5e1;">Pembelian Via</label>
@@ -364,10 +364,43 @@
     </div>
   </div>
 </div>
+<div class="modal" id="modalInfoPesanan" style="z-index: 3000;">
+  <div class="modal-box" style="width: 480px;">
+    <h3 style="margin-bottom: 20px; color:#38bdf8; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">ℹ️ Informasi Pengiriman</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <label style="font-size:12px; color:#cbd5e1;">Nama Penerima</label>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="infoNama" class="input-form" readonly style="margin-bottom:0; background:rgba(0,0,0,0.2);">
+        <button class="btn btn-blue" onclick="salinTeks('infoNama', this)" style="padding: 10px 15px;">📋 Salin</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+      <label style="font-size:12px; color:#cbd5e1;">Nomor WhatsApp</label>
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="infoWa" class="input-form" readonly style="margin-bottom:0; background:rgba(0,0,0,0.2);">
+        <button class="btn btn-blue" onclick="salinTeks('infoWa', this)" style="padding: 10px 15px;">📋 Salin</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom: 25px;">
+      <label style="font-size:12px; color:#cbd5e1;">Alamat Lengkap</label>
+      <div style="display:flex; gap:10px; align-items:flex-start;">
+        <textarea id="infoAlamat" class="input-form" rows="4" readonly style="margin-bottom:0; background:rgba(0,0,0,0.2); resize:none;"></textarea>
+        <button class="btn btn-blue" onclick="salinTeks('infoAlamat', this)" style="padding: 10px 15px; height: max-content;">📋 Salin</button>
+      </div>
+    </div>
+    
+    <div style="display:flex; justify-content:flex-end;">
+      <button class="btn btn-red" style="padding: 12px 25px; width:100%;" onclick="document.getElementById('modalInfoPesanan').style.display='none'">Tutup</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // PASTIKAN LINK INI SELALU UPDATE JIKA DEPLOY BARU
-  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbza9lPm_NPB8uoZ72RARH_PXJziB8XI_AwHeTEiGR3MgfzTxLQMLCDpjvn7gKJJUL0/exec";
 
   if(localStorage.getItem("role") !== "admin") { alert("Akses Ditolak!"); window.location.href = "index.html"; }
 
@@ -438,10 +471,20 @@ function renderKeranjangMP() {
 
 async function simpanMarketplace() {
   const noPesanan = document.getElementById('mpNoPesanan').value;
-  const wa = document.getElementById('mpWa').value;
+  let rawWa = document.getElementById('mpWa').value;
   const via = document.getElementById('mpVia').value;
   
-  if(!noPesanan || !wa) return alert("Harap isi Nomor Pesanan dan WA!");
+  if(!noPesanan || !rawWa) return alert("Harap isi Nomor Pesanan dan WA!");
+
+  // --- LOGIKA FORMAT NOMOR WA OTOMATIS ---
+  let cleanWa = rawWa.replace(/\D/g, ''); // Menghapus semua karakter selain angka
+  if (cleanWa.startsWith('62')) {
+    cleanWa = '0' + cleanWa.substring(2); // Jika awalannya 62, ubah jadi 0
+  } else if (cleanWa.startsWith('8')) {
+    cleanWa = '0' + cleanWa; // Jika awalannya langsung 8, tambahkan 0 di depan
+  }
+  // ---------------------------------------
+
   if(keranjangMarketplace.length === 0) return alert("Keranjang pesanan masih kosong!");
 
   // Menggabungkan nama produk dan menghitung total harga
@@ -456,9 +499,9 @@ async function simpanMarketplace() {
   const payload = { 
     action: "add_marketplace", 
     no_pesanan: noPesanan, 
-    no_wa: wa, 
+    no_wa: cleanWa, // Mengirim nomor WA yang sudah dibersihkan ke sistem
     via_marketplace: via, 
-    status: "pesanan selesai", // Memakai status baru huruf kecil seperti yang diminta
+    status: "pesanan selesai", // Sesuai permintaan awal
     rincian_pesanan: pesananArr.join(" | "), 
     total_harga: totalMarketplace 
   };
@@ -552,30 +595,6 @@ async function loadMarketplace() {
   } catch(e) { 
     tbody.innerHTML = '<tr><td colspan="4" style="color:#ef4444; text-align:center;">Gagal memuat data.</td></tr>'; 
   }
-}
-
-async function simpanMarketplace() {
-  const noPesanan = document.getElementById('mpNoPesanan').value;
-  const wa = document.getElementById('mpWa').value;
-  const via = document.getElementById('mpVia').value;
-  
-  if(!noPesanan || !wa) return alert("Harap isi Nomor Pesanan dan WA!");
-
-  document.getElementById('btnSimpanMarketplace').innerText = "⏳ Menyimpan...";
-  
-  // Sesuai permintaan: No -> Nomor Pesanan, Akun Pemesan -> Via, Status -> Selesai
-  const payload = { 
-    action: "add_marketplace", 
-    no_pesanan: noPesanan, 
-    no_wa: wa, 
-    via_marketplace: via, 
-    status: "Pesanan Selesai" 
-  };
-  
-  await fetchAPI(payload);
-  document.getElementById('modalMarketplace').style.display = 'none'; 
-  document.getElementById('btnSimpanMarketplace').innerText = "Simpan Data";
-  loadMarketplace(); loadDashboard();
 }
 
 async function updateViaMarketplace(row) {
@@ -994,9 +1013,21 @@ function cariTabelMarketplace() {
         </select>
       `;
 
+      // Mencegah error jika ada tanda kutip pada nama atau alamat pelanggan
+      let safeAlamat = (l.alamat || "").replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+      let safeNama = (l.nama || "").replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+      // Tambahkan logika pengecekan status WA sebelum membuat tombol
+      let isWaSent = (l.wa_sent === true || l.wa_sent === "TRUE" || l.wa_sent === "true");
+      let btnWaText = isWaSent ? "✅ WA Terkirim" : "💬 Kirim WA";
+      let btnWaColor = isWaSent ? "btn-blue" : "btn-green";
+      let disabledAttr = isWaSent ? "disabled style='opacity:0.7; cursor:not-allowed;'" : "";
+
       let aksiBtns = `
         <div style="display:flex; flex-direction:column; gap:8px;">
-          <button class="btn btn-green" style="padding: 6px 12px; width: 100%; font-size:11px;" onclick="kirimWA('${l.hp}', '${l.id_trx}', ${hrga}, ${l.row})">💬 Kirim WA</button>
+          <button class="btn" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); padding: 6px 12px; width: 100%; font-size:11px;" onclick="bukaModalInfo('${safeNama}', '${l.hp}', '${safeAlamat}')">ℹ️ Info Kirim</button>
+          
+          <button id="btnWa_${l.row}" class="btn ${btnWaColor}" style="padding: 6px 12px; width: 100%; font-size:11px;" onclick="kirimWA('${l.hp}', '${l.id_trx}', ${hrga}, ${l.row})" ${disabledAttr}>${btnWaText}</button>
           <button class="btn btn-blue" style="padding: 6px 12px; width: 100%; font-size:11px;" onclick="cetakPesanan('${l.id_trx}')">🖨️ Cetak Resi</button>
         </div>
       `;
@@ -1044,10 +1075,25 @@ function cariTabelMarketplace() {
     dropdown.disabled = true;
     dropdown.style.opacity = "0.5";
     try {
-      const res = await fetchAPI({action: "update_status", row: row, status: newStatus});
+      // Tambahkan reset_wa: true pada payload
+      const res = await fetchAPI({action: "update_status", row: row, status: newStatus, reset_wa: true});
       if(res.result === "success") {
         dropdown.style.borderColor = "#10b981"; 
         setTimeout(() => dropdown.style.borderColor = "rgba(255,255,255,0.1)", 2000);
+        
+        // --- RESET TAMPILAN TOMBOL WA & DATA LOKAL ---
+        let btn = document.getElementById(`btnWa_${row}`);
+        if(btn) {
+           btn.innerText = "💬 Kirim WA";
+           btn.classList.remove("btn-blue");
+           btn.classList.add("btn-green");
+           btn.disabled = false;
+           btn.style.opacity = "1";
+           btn.style.cursor = "pointer";
+        }
+        let index = globalLaporan.findIndex(item => item.row === row);
+        if(index !== -1) globalLaporan[index].wa_sent = false;
+
         loadDashboard(); 
       } else {
         alert("Gagal memperbarui status!");
@@ -1057,7 +1103,7 @@ function cariTabelMarketplace() {
     dropdown.style.opacity = "1";
   }
 
-  function kirimWA(hp, idTrx, total, row) {
+  async function kirimWA(hp, idTrx, total, row) {
     let currentStatus = document.getElementById(`status_${row}`).value;
     let noHp = hp.toString().replace(/\D/g, ''); 
     if(noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
@@ -1075,7 +1121,33 @@ Saat ini status pesanan kakak: *${currentStatus}*.
 Klik link berikut untuk informasi update pesanan yaa... Terimakasih!
 https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
     
+    // Buka WhatsApp di tab baru
     window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(textWa)}`, '_blank');
+
+    // --- PROSES UPDATE STATUS KE GOOGLE SHEETS ---
+    let btn = document.getElementById(`btnWa_${row}`);
+    btn.innerText = "⏳ Memproses...";
+    
+    try {
+      // Mengirim perintah action: "update_wa_sent" ke backend
+      const res = await fetchAPI({ action: "update_wa_sent", row: row, wa_sent: true });
+      if(res.result === "success") {
+        btn.innerText = "✅ WA Terkirim";
+        btn.classList.remove("btn-green");
+        btn.classList.add("btn-blue");
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+        btn.style.cursor = "not-allowed";
+        
+        // Update data lokal agar tidak hilang saat pindah halaman paginasi
+        let index = globalLaporan.findIndex(item => item.row === row);
+        if(index !== -1) globalLaporan[index].wa_sent = true;
+      } else {
+        btn.innerText = "💬 Kirim WA (Gagal)";
+      }
+    } catch(e) { 
+      btn.innerText = "💬 Kirim WA (Error)"; 
+    }
   }
 
   async function cetakPesanan(idTrx) {
@@ -1162,6 +1234,40 @@ https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
     loadDashboard();
     loadProduk(); // Menarik database produk di background saat pertama kali web dibuka
 };
+// --- FUNGSI INFO PENGIRIMAN & SALIN TEKS ---
+  function bukaModalInfo(nama, wa, alamat) {
+    // Logika memformat nomor WA agar mulai dari angka 8
+    let cleanWa = (wa || "-").toString().replace(/\D/g, ''); // Hapus karakter selain angka
+    if (cleanWa.startsWith('0')) cleanWa = cleanWa.substring(1); // Jika awalannya 0, hapus 1 angka di depan
+    if (cleanWa.startsWith('62')) cleanWa = cleanWa.substring(2); // Jika awalannya 62, hapus 2 angka di depan
+
+    document.getElementById('infoNama').value = nama || "-";
+    document.getElementById('infoWa').value = cleanWa || "-";
+    document.getElementById('infoAlamat').value = alamat || "-";
+    document.getElementById('modalInfoPesanan').style.display = 'flex';
+  }
+
+  function salinTeks(elementId, btn) {
+    var copyText = document.getElementById(elementId);
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); // Untuk support HP/Mobile
+    
+    navigator.clipboard.writeText(copyText.value).then(() => {
+      let originalText = btn.innerHTML;
+      btn.innerHTML = "✅ Tersalin!";
+      btn.classList.remove("btn-blue");
+      btn.classList.add("btn-green");
+      
+      // Kembalikan teks seperti semula setelah 2 detik
+      setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove("btn-green");
+        btn.classList.add("btn-blue");
+      }, 2000);
+    }).catch(err => {
+      alert("Gagal menyalin teks. Browser Anda mungkin tidak mendukung fitur ini.");
+    });
+  }
 </script>
 <script>
   if ('serviceWorker' in navigator) {
