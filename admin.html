@@ -85,7 +85,11 @@
     <a onclick="switchPage('dashboard', this)" class="active">📊 Dashboard</a>
     <a onclick="switchPage('transaksi', this)">🛒 Order Manual</a>
     <a onclick="switchPage('produk', this)">📦 Produk & Stok</a>
-    <a onclick="switchPage('marketplace', this)">🛍️ Order Marketplace</a> <a onclick="switchPage('laporan', this)">📈 Laporan Penjualan</a>
+    <a onclick="switchPage('marketplace', this)">🛍️ Order Marketplace</a> 
+    <a onclick="switchPage('laporan', this)">📈 Laporan Penjualan</a>
+    <a onclick="switchPage('pelanggan', this)">👥 Data Pelanggan</a>
+    
+    
     <a onclick="logout()" style="margin-top: 50px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">🚪 Logout</a>
   </div>
 </div>
@@ -194,6 +198,7 @@
         <button class="btn btn-blue" style="border-radius: 20px; padding: 10px 20px;" onclick="bukaModalMarketplace()">+ Tambah Pesanan</button>
       </div>
     </div>
+    
     <table id="tabel-marketplace">
       <thead>
         <tr>
@@ -201,6 +206,28 @@
           <th>No WhatsApp</th>
           <th>Pembelian Via</th>
           <th style="text-align:center;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="4" style="text-align:center; padding: 30px;">Memuat Data...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- HALAMAN DATA PELANGGAN -->
+  <div id="page-pelanggan" class="section-content">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px;">
+      <h2>Data Akun Pelanggan & Admin</h2>
+      <div style="display:flex; gap: 15px; align-items: center;">
+        <input type="text" id="cariPelanggan" class="input-form" placeholder="🔍 Cari Nama / WA..." style="width: 280px; margin: 0; border-radius: 20px; padding-left: 20px;" onkeyup="cariTabelPelanggan()">
+      </div>
+    </div>
+    <table id="tabel-pelanggan">
+      <thead>
+        <tr>
+          <th>No WhatsApp</th>
+          <th>Nama Pelanggan</th>
+          <th>Poin Tersedia</th>
+          <th>Role / Akses</th>
         </tr>
       </thead>
       <tbody>
@@ -400,7 +427,7 @@
 
 <script>
   // PASTIKAN LINK INI SELALU UPDATE JIKA DEPLOY BARU
-  const LINK_API = "https://script.google.com/macros/s/AKfycbza9lPm_NPB8uoZ72RARH_PXJziB8XI_AwHeTEiGR3MgfzTxLQMLCDpjvn7gKJJUL0/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbzzNleYIlUh4C1YrVL4HNiAgv6Bkw6enzyvBAPAqgeblR7IE0QNf3Waq8Sp7-OLcOyr/exec";
 
   if(localStorage.getItem("role") !== "admin") { alert("Akses Ditolak!"); window.location.href = "index.html"; }
 
@@ -536,6 +563,7 @@ function switchPage(pageId, element) {
   element.classList.add('active');
   
   if(pageId === 'dashboard') loadDashboard();
+  if(pageId === 'pelanggan') loadPelanggan();
   
   // PERBAIKAN: Tambahkan 'marketplace' ke dalam kondisi ini agar data produk ikut dimuat
   if(pageId === 'produk' || pageId === 'transaksi' || pageId === 'marketplace') {
@@ -1268,6 +1296,98 @@ https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
       alert("Gagal menyalin teks. Browser Anda mungkin tidak mendukung fitur ini.");
     });
   }
+  // ==================== LOGIKA DATA PELANGGAN ==================== //
+  async function loadPelanggan() {
+    const tbody = document.querySelector('#tabel-pelanggan tbody');
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px;">Memuat Database...</td></tr>';
+    
+    try {
+      const data = await fetchAPI({action: "get_pelanggan"});
+      if(data.result === "success") {
+        tbody.innerHTML = "";
+        data.data.forEach(p => {
+          // Highlight warna jika dia admin
+          let isRoleAdmin = p.role === 'admin';
+          let roleColor = isRoleAdmin ? 'color:#f59e0b; font-weight:bold; border-color:#f59e0b;' : 'color:#94a3b8;';
+          
+          let selectRole = `
+            <select id="role_${p.row}" class="input-form" style="width:130px; margin:0; padding:6px; font-size:12px; background:rgba(15, 23, 42, 0.8); ${roleColor}" onchange="updateRole('${p.wa}', ${p.row})">
+              <option value="customer" ${!isRoleAdmin ? 'selected' : ''}>Customer</option>
+              <option value="admin" ${isRoleAdmin ? 'selected' : ''}>Admin</option>
+            </select>
+          `;
+
+          tbody.innerHTML += `<tr>
+            <td><span style="background:rgba(255,255,255,0.1); padding:4px 8px; border-radius:4px; font-family:monospace; color:#38bdf8; font-weight:bold;">${p.wa}</span></td>
+            <td><b>${p.nama}</b></td>
+            <td><span style="background:rgba(16, 185, 129, 0.1); color:#10b981; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">⭐ ${p.poin}</span></td>
+            <td>${selectRole}</td>
+          </tr>`;
+        });
+      }
+    } catch(e) { 
+      tbody.innerHTML = '<tr><td colspan="4" style="color:#ef4444; text-align:center;">Gagal memuat data pelanggan.</td></tr>'; 
+    }
+  }
+
+  async function updateRole(wa, row) {
+    const dropdown = document.getElementById(`role_${row}`);
+    const newRole = dropdown.value;
+    
+    // Keamanan: Konfirmasi sebelum mengangkat jadi admin
+    if(!confirm(`Yakin ingin mengubah akses nomor ${wa} menjadi ${newRole.toUpperCase()}?`)) {
+      loadPelanggan(); // Reset tampilan ke awal jika dibatalkan
+      return;
+    }
+
+    dropdown.disabled = true;
+    dropdown.style.opacity = "0.5";
+    
+    try {
+      const res = await fetchAPI({action: "update_role", wa: wa, role: newRole});
+      if(res.result === "success") {
+        if(newRole === 'admin') {
+           dropdown.style.color = '#f59e0b';
+           dropdown.style.fontWeight = 'bold';
+           dropdown.style.borderColor = '#f59e0b';
+        } else {
+           dropdown.style.color = '#94a3b8';
+           dropdown.style.fontWeight = 'normal';
+           dropdown.style.borderColor = 'rgba(255,255,255,0.1)';
+        }
+        alert("Akses berhasil diperbarui!");
+      } else {
+        alert("Gagal merubah akses!");
+        loadPelanggan();
+      }
+    } catch (e) { 
+      alert("Koneksi gagal saat merubah akses."); 
+      loadPelanggan();
+    }
+    
+    dropdown.disabled = false;
+    dropdown.style.opacity = "1";
+  }
+
+  function cariTabelPelanggan() {
+    let input = document.getElementById("cariPelanggan").value.toUpperCase();
+    let table = document.getElementById("tabel-pelanggan");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) { 
+      let tdWa = tr[i].getElementsByTagName("td")[0]; 
+      let tdNama = tr[i].getElementsByTagName("td")[1]; 
+      if (tdWa || tdNama) {
+        let txtValueWa = tdWa.textContent || tdWa.innerText;
+        let txtValueNama = tdNama.textContent || tdNama.innerText;
+        if (txtValueWa.toUpperCase().indexOf(input) > -1 || txtValueNama.toUpperCase().indexOf(input) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }      
+    }
+  }
 </script>
 <script>
   if ('serviceWorker' in navigator) {
@@ -1281,6 +1401,7 @@ https://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
         });
     });
   }
+  
 </script>
 </body>
 </html>
