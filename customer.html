@@ -224,6 +224,21 @@
 
   <div id="katalog-container"></div>
 
+  <!-- BAGIAN KERANJANG PESANAN (TAMBAHKAN KODE INI) -->
+  <div class="form-section" id="keranjangSection" style="display:none; margin-top:30px; border-color: #38bdf8; box-shadow: 0 0 20px rgba(56,189,248,0.15);">
+    <h3 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: none;">
+      <span>🛒 Rincian Pesanan</span>
+      <span id="badgeKeranjang" style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; font-size: 11px; padding: 4px 10px; border-radius: 12px; box-shadow: 0 2px 10px rgba(249, 115, 22, 0.4);">0 Item</span>
+    </h3>
+    <div id="listKeranjang" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Daftar produk akan muncul otomatis di sini -->
+    </div>
+  </div>
+  <!-- BATAS AKHIR KERANJANG -->
+
+  <div class="form-section" id="dataPenerimaSection" style="margin-top:20px;">
+  
+
   <div class="form-section" id="dataPenerimaSection" style="margin-top:30px;">
     <h3>Data Pengiriman</h3>
     <div class="input-box" id="boxNamaPenerima">
@@ -245,7 +260,7 @@
         </div>
         <div class="input-box" id="boxKabupaten">
           <label>Kota / Kab</label>
-          <select id="kabupaten" onchange="loadKecamatan(); hapusError('boxKabupaten')" disabled><option value="">Pilih Prov...</option></select>
+          <select id="kabupaten" onchange="loadKecamatan(); hapusError('boxKabupaten'); hitungSemua()" disabled><option value="">Pilih Prov...</option></select>
           <p class="error-msg">⚠️ Wajib!</p>
         </div>
         <div class="input-box" id="boxKecamatan">
@@ -362,7 +377,7 @@
 </div>
 
 <script>
-  const LINK_API = "https://script.google.com/macros/s/AKfycbxVvBpwLagWGyh1lx5qQ6tWCddDRPrr2Ygkrn1npH20GoIdYhjDyMZAE00D08mHI5qB/exec";
+  const LINK_API = "https://script.google.com/macros/s/AKfycbzzNleYIlUh4C1YrVL4HNiAgv6Bkw6enzyvBAPAqgeblR7IE0QNf3Waq8Sp7-OLcOyr/exec";
   const IMGBB_API_KEY = "bfd65eb9e20be1268509210b2f8fb9a1";
   
   if(!localStorage.getItem("wa")) { window.location.href = "index.html"; }
@@ -606,16 +621,59 @@
   function loadDesa() { ambilEmsifa(`${apiWilayah}/villages/${document.getElementById('kecamatan').value}.json`, 'desa', 'Pilih Desa...'); }
   function getSelectText(id) { const s = document.getElementById(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].getAttribute('data-name') : ""; }
 
-  function hitungSemua() {
+
+// --- FUNGSI HITUNG SEMUA (ANTI-BUG) ---
+function hitungSemua() {
     gSubtotal = 0;
-    globalProduk.forEach(p => { let qty = parseInt(document.getElementById('cus_'+p.id).innerText); gSubtotal += qty * parseInt(p.harga); });
     
+    // --- TAMBAHAN UNTUK KERANJANG ---
+    let htmlKeranjang = "";
+    let totalItem = 0;
+
+    // 1. Hitung subtotal harga produk & buat list keranjang
+    globalProduk.forEach(p => { 
+        let elQty = document.getElementById('cus_'+p.id);
+        if (elQty) {
+            let qty = parseInt(elQty.innerText); 
+            if (qty > 0) {
+                let subtotalItem = qty * parseInt(p.harga);
+                gSubtotal += subtotalItem; 
+                totalItem += qty;
+
+                // Desain kotak kecil untuk setiap produk di keranjang
+                htmlKeranjang += `
+                <div style="background: rgba(15,23,42,0.8); border: 1px solid rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 14px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-size: 14px; font-weight: 600; color: #f8fafc; margin-bottom: 2px;">${p.nama}</div>
+                        <div style="font-size: 12px; color: #94a3b8;">Rp ${parseInt(p.harga).toLocaleString('id-ID')} <b style="color:white;">x${qty}</b></div>
+                    </div>
+                    <div style="font-size: 14px; font-weight: bold; color: #38bdf8;">Rp ${subtotalItem.toLocaleString('id-ID')}</div>
+                </div>`;
+            }
+        }
+    });
+
+    // Tampilkan / Sembunyikan Area Keranjang
+    const keranjangSec = document.getElementById('keranjangSection');
+    if (gSubtotal > 0) {
+        keranjangSec.style.display = "block";
+        document.getElementById('listKeranjang').innerHTML = htmlKeranjang;
+        document.getElementById('badgeKeranjang').innerText = totalItem + " Item";
+    } else {
+        keranjangSec.style.display = "none";
+        document.getElementById('listKeranjang').innerHTML = "";
+    }
+    // --------------------------------
+    
+    // 2. Terapkan Biaya Layanan Flat Rp 4.000
     let namaProv = getSelectText('provinsi');
     gBiayaLayanan = 0;
+    
     if(gSubtotal > 0 && namaProv !== "") {
-      gBiayaLayanan = 2000;
+        gBiayaLayanan = 4000;
     }
     
+    // 3. Hitung Potongan Poin
     let pakaiPoin = document.getElementById('cbPakaiPoin').checked;
     let diskonPoin = 0;
     if (pakaiPoin && totalPoinUser > 0) {
@@ -628,12 +686,18 @@
         document.getElementById('rowDiskonPoin').style.display = "none";
     }
     
+    // 4. Hitung Grand Total
     let grandTotal = (gSubtotal + gBiayaLayanan) - diskonPoin;
     
+    // 5. Update teks di tampilan UI bawah
     document.getElementById('txtSubtotal').innerText = "Rp " + gSubtotal.toLocaleString('id-ID');
+    
+    let lblLayanan = document.querySelector('.total-row:nth-child(2) span:first-child');
+    if(lblLayanan) lblLayanan.innerText = "Biaya Layanan:";
+    
     document.getElementById('txtBiayaLayanan').innerText = "Rp " + gBiayaLayanan.toLocaleString('id-ID');
     document.getElementById('txtGrandTotal').innerText = "Rp " + grandTotal.toLocaleString('id-ID');
-  }
+}
 
   function showElementError(idBox) {
     const box = document.getElementById(idBox);
