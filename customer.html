@@ -963,14 +963,19 @@ function hitungSemua() {
     if(gSubtotal === 0) { showToast("Pilih minimal 1 produk di keranjang!", true); return; }
 
     for (let p of globalProduk) {
-      let qty = parseInt(document.getElementById('cus_'+p.id).innerText);
+      let el = document.getElementById('cus_'+p.id);
+      if(!el) continue; // Mencegah crash jika ID tidak ditemukan di layar
+      
+      let qty = parseInt(el.innerText) || 0;
       if (qty > 0 && p.kelipatan > 1) {
         if (qty % p.kelipatan !== 0) {
           showToast(`Pembelian produk [${p.nama}] wajib kelipatan ${p.kelipatan}!`, true);
-          let itemBox = document.getElementById(`card_${p.id}`);
-          itemBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          itemBox.style.borderColor = "#ef4444";
-          setTimeout(() => { itemBox.style.borderColor = "rgba(255,255,255,0.05)"; }, 2500);
+          let itemBox = el.closest('.product-card'); // Cara paling aman mencari card
+          if(itemBox) {
+            itemBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            itemBox.style.borderColor = "#ef4444";
+            setTimeout(() => { itemBox.style.borderColor = "rgba(255,255,255,0.05)"; }, 2500);
+          }
           return;
         }
       }
@@ -1021,7 +1026,13 @@ function hitungSemua() {
       if(!imgData.success) { showToast("Gagal upload gambar! Periksa koneksi Anda.", true); btn.innerText = "🚀 Kirim Pesanan Sekarang"; btn.disabled = false; return; }
 
       let pesananArr = [];
-      globalProduk.forEach(p => { let qty = parseInt(document.getElementById('cus_'+p.id).innerText); if(qty > 0) pesananArr.push(`${p.nama} x${qty}`); });
+      globalProduk.forEach(p => { 
+          let el = document.getElementById('cus_'+p.id);
+          if(el) {
+              let qty = parseInt(el.innerText) || 0; 
+              if(qty > 0) pesananArr.push(`${p.nama} x${qty}`); 
+          }
+      });
 
       const prov = getSelectText('provinsi'); const kab = getSelectText('kabupaten'); const kec = getSelectText('kecamatan'); const desa = getSelectText('desa');
       const pos = document.getElementById('kodePos').value; const detail = document.getElementById('alamatLengkap').value;
@@ -1061,7 +1072,13 @@ function hitungSemua() {
         window.open("https://wa.me/6283143152613?text=" + encodeURIComponent(waText), "_blank");
         
         document.getElementById('paymentModal').style.display = 'none';
-        globalProduk.forEach(p => { document.getElementById('cus_'+p.id).innerText = "0"; }); hitungSemua();
+        
+        globalProduk.forEach(p => { 
+            let el = document.getElementById('cus_'+p.id);
+            if(el) el.innerText = "0"; 
+        }); 
+        hitungSemua();
+        
         switchPage('history', document.querySelectorAll('.sidebar-menu a')[1]);
         showToast("✅ Pesanan berhasil dikirim!");
       }
