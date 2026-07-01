@@ -704,7 +704,7 @@
     let noHp = hp.toString().replace(/\D/g, '');
     if(noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
 
-    let textWa = `*NOTIFIKASI PESANAN*\n------------------------------------------\n*Digiprint Sbpc.*\nJl. Arah Kebonklopo RT23 RW 06 Desa\nJatiguwi, Sumberpucung\n083143152613\n------------------------------------------\nHalo kak, menginfokan untuk pesanan *${idTrx}* dengan total *Rp ${total.toLocaleString('id-ID')}*.\nSaat ini status pesanan kakak: *${currentStatus}*.\n\nKlik link berikut untuk informasi update pesanan yaa... Terimakasih!\nhttps://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
+        let textWa = `*NOTIFIKASI PESANAN*\n*chat Bot Sistem*\n------------------------------------------\n*Digiprint Sbpc.*\nJl. Arah Kebonklopo RT23 RW 06 Desa\nJatiguwi, Sumberpucung\n083143152613\n------------------------------------------\nHalo kak, menginfokan untuk pesanan *${idTrx}* dengan total *Rp ${total.toLocaleString('id-ID')}*.\nSaat ini status pesanan kakak: *${currentStatus}*.\n\nKlik link berikut untuk informasi update pesanan yaa... Terimakasih!\nhttps://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
 
     let btn = document.getElementById(`btnWa_${row}`);
     btn.innerText = "⏳ Mengirim...";
