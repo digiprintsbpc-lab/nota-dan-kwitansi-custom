@@ -80,6 +80,7 @@
     <a onclick="switchPage('marketplace', this)">🛍️ Order Marketplace</a> 
     <a onclick="switchPage('laporan', this)">📈 Laporan Penjualan</a>
     <a onclick="switchPage('pelanggan', this)">👥 Data Pelanggan</a>
+    <a onclick="switchPage('bot', this)">⚙️ Perlalatan Bot</a>
     <a onclick="logout()" style="margin-top: 50px; background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5;">🚪 Logout</a>
   </div>
 </div>
@@ -222,6 +223,43 @@
     </table>
     <div id="pagination-laporan" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px 20px; background: rgba(30, 41, 59, 0.6); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);"></div>
   </div>
+  <div id="page-bot" class="section-content">
+  <h2 style="margin-bottom: 5px;">Perlalatan Bot WhatsApp</h2>
+  <p style="font-size:13px; color:#94a3b8; margin-bottom:25px;">Hubungkan nomor WhatsApp admin untuk mengirim notifikasi otomatis.</p>
+  
+  <div style="display:flex; gap:25px; align-items:flex-start; flex-wrap: wrap;">
+    <!-- Form Pengaturan -->
+    <div class="card-dash" style="flex:1; min-width: 300px;">
+      <h3 style="color:#38bdf8; margin-bottom:20px; font-size:16px;">Konfigurasi Server</h3>
+      
+      <label style="font-size:12px; color:#cbd5e1;">Nomor WA Pengirim (Utama)</label>
+      <input type="number" id="botWaNumber" class="input-form" placeholder="Contoh: 08123456789">
+      
+      <label style="font-size:12px; color:#cbd5e1;">URL Server Bot (Backend)</label>
+      <input type="text" id="botServerUrl" class="input-form" placeholder="https://api-bot-kamu.com" disabled value="Belum ada server">
+      
+      <button class="btn btn-blue" style="padding:12px; width:100%; margin-top: 15px;" onclick="mintaQRCode()">🔄 Minta QR Code Baru</button>
+      
+      <div id="botStatus" style="margin-top: 15px; padding: 10px; border-radius: 8px; background: rgba(239, 68, 68, 0.1); color: #f87171; text-align: center; font-size: 13px; font-weight: 500;">
+        🔴 Bot Disconnected
+      </div>
+    </div>
+
+    <!-- Area Tampilan QR Code -->
+    <div class="card-dash" style="width: 350px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+      <h3 style="color:#38bdf8; margin-bottom:10px; font-size:16px;">Scan QR Code</h3>
+      <p style="font-size:11px; color:#94a3b8; margin-bottom:15px;">Buka WhatsApp di HP Anda > Perangkat Tertaut > Tautkan Perangkat</p>
+      
+      <div id="qrContainer" style="width: 250px; height: 250px; background: white; border-radius: 12px; display: flex; justify-content: center; align-items: center; border: 2px dashed #cbd5e1; margin-bottom: 20px;">
+        <span style="color: #64748b; font-size: 12px;">QR Code akan muncul di sini</span>
+        <!-- Nanti gambar QR akan dimasukkan ke sini melalui JavaScript: -->
+        <!-- <img id="qrImage" src="..." style="max-width: 100%; border-radius: 8px;"> -->
+      </div>
+      
+      <button class="btn btn-green" style="padding:10px 20px; font-size: 13px;" onclick="cekStatusKoneksi()">Cek Status Koneksi</button>
+    </div>
+  </div>
+</div>
 
 </div>
 
@@ -681,18 +719,39 @@
   }
 
   async function kirimWA(hp, idTrx, total, row) {
-    let currentStatus = document.getElementById(`status_${row}`).value; let noHp = hp.toString().replace(/\D/g, ''); 
+    let currentStatus = document.getElementById(`status_${row}`).value; 
+    let noHp = hp.toString().replace(/\D/g, ''); 
     if(noHp.startsWith('0')) noHp = '62' + noHp.substring(1);
+    
     let textWa = `*NOTIFIKASI PESANAN*\n------------------------------------------\n*Digiprint Sbpc.*\nJl. Arah Kebonklopo RT23 RW 06 Desa\nJatiguwi, Sumberpucung\n083143152613\n------------------------------------------\nHalo kak, menginfokan untuk pesanan *${idTrx}* dengan total *Rp ${total.toLocaleString('id-ID')}*.\nSaat ini status pesanan kakak: *${currentStatus}*.\n\nKlik link berikut untuk informasi update pesanan yaa... Terimakasih!\nhttps://digiprintsbpc-lab.github.io/nota-dan-kwitansi-custom`;
-    window.open(`https://wa.me/${noHp}?text=${encodeURIComponent(textWa)}`, '_blank');
+    
+    let btn = document.getElementById(`btnWa_${row}`); 
+    btn.innerText = "⏳ Memproses...";
 
-    let btn = document.getElementById(`btnWa_${row}`); btn.innerText = "⏳ Memproses...";
     try {
+      // 1. MENGIRIM PERINTAH KE BOT LOKAL (NODE.JS)
+      await fetch('http://localhost:3000/api/kirim-pesan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nomor: noHp, pesan: textWa })
+      });
+
+      // 2. MENGUPDATE DATABASE GOOGLE SHEET (Kode aslimu)
       const res = await fetchAPI({ action: "update_wa_sent", row: row, wa_sent: true });
-      if(res.result === "success") { btn.innerText = "✅ WA Terkirim"; btn.classList.remove("btn-green"); btn.classList.add("btn-blue"); btn.disabled = true; btn.style.opacity = "0.7"; btn.style.cursor = "not-allowed"; let index = globalLaporan.findIndex(item => item.row === row); if(index !== -1) globalLaporan[index].wa_sent = true; } 
-      else { btn.innerText = "💬 Kirim WA (Gagal)"; }
-    } catch(e) { btn.innerText = "💬 Kirim WA (Error)"; }
-  }
+      if(res.result === "success") { 
+          btn.innerText = "✅ WA Terkirim"; 
+          btn.classList.remove("btn-green"); btn.classList.add("btn-blue"); 
+          btn.disabled = true; btn.style.opacity = "0.7"; btn.style.cursor = "not-allowed"; 
+          let index = globalLaporan.findIndex(item => item.row === row); 
+          if(index !== -1) globalLaporan[index].wa_sent = true; 
+      } else { 
+          btn.innerText = "💬 Kirim WA (Gagal DB)"; 
+      }
+    } catch(e) { 
+        btn.innerText = "💬 Kirim WA (Error Bot)"; 
+        alert("Gagal kirim pesan. Pastikan bot Node.js sedang menyala di terminal!");
+    }
+}
 
   async function cetakPesanan(idTrx) {
     document.getElementById('strukModal').style.display = 'flex'; document.getElementById('strukNo').innerText = idTrx; document.getElementById('strukPesanan').innerHTML = '<i>Memuat rincian pesanan...</i>'; document.getElementById('strukTgl').innerText = '...'; document.getElementById('strukTotal').innerText = '...'; document.getElementById('strukBayar').innerText = '...';
@@ -785,6 +844,31 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error: ', err)); });
   }
+  // Tambahkan di dalam fungsi switchPage yang sudah ada
+// if(pageId === 'bot') { /* lakukan sesuatu jika diperlukan saat menu dibuka */ }
+
+function mintaQRCode() {
+  const qrContainer = document.getElementById('qrContainer');
+  const btn = event.target;
+  
+  btn.innerText = "⏳ Meminta QR Code dari server...";
+  btn.disabled = true;
+
+  // Ini hanya simulasi (dummy). Nanti akan diganti dengan perintah 'fetch' ke server Node.js kamu.
+  setTimeout(() => {
+    qrContainer.innerHTML = `<div style="padding: 20px; text-align: center; color: black;">
+      <p>Simulasi QR Code</p>
+      <div style="width: 150px; height: 150px; background: black; margin: 0 auto;"></div>
+    </div>`;
+    btn.innerText = "🔄 Minta QR Code Baru";
+    btn.disabled = false;
+  }, 1500);
+}
+
+function cekStatusKoneksi() {
+  // Nanti fungsi ini akan mengecek ke server apakah HP sudah berhasil login
+  alert("Saat ini belum ada server backend yang terhubung untuk mengecek status.");
+}
 </script>
 </body>
 </html>
